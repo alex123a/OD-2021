@@ -1,0 +1,60 @@
+version: '3.5'
+services:
+    proxy:
+      build:
+        context: ./dockerfiles/proxy
+        dockerfile: Dockerfile
+      # container_name: proxyContainer
+      depends_on:
+        - backend
+      volumes:
+          - ./html:/usr/share/nginx/html
+      restart: always
+      ports:
+        - 80:80
+        - 443:443
+      networks:
+        network1:
+          aliases:
+            - proxyNetwork1
+    backend:
+      build:
+        context: ./dockerfiles/backend
+        dockerfile: Dockerfile
+      depends_on: 
+        - database
+      # container_name: backendContainer
+      volumes:
+        - ./dockerfiles/backend/python:/code
+      #restart: always
+      # Make await for it instead of restart
+
+      # environment under is a test if it works. It should wait on database to start
+      #environment:
+        #- WAIT_HOSTS=mysql:3306
+        #- WAIT_HOSTS_TIMEOUT=10
+        #- WAIT_SLEEP_INTERVAL=5
+        #- WAIT_HOST_CONNECT_TIMEOUT=5
+
+      networks:
+        network1:
+          aliases: 
+            - backendNetwork1
+        network2:
+          aliases: 
+            - backendNetwork2
+    database:
+      build:
+        context: ./dockerfiles/database
+        dockerfile: Dockerfile
+      # container_name: databaseContainer
+      environment:
+        - MYSQL_ROOT_PASSWORD=SAFECODE
+      networks:
+        network2:
+          aliases:
+            - 'databaseNetwork2' 
+    
+networks:
+  network1:
+  network2:
